@@ -1,0 +1,61 @@
+pipeline {
+    agent any
+
+    tools {
+        // Install the Maven version configured as "M3" and add it to the path.
+        maven "M3"
+    }
+
+    stages {
+        stage('拉取代码') {
+            steps {
+                // Get some code from a GitHub repository
+                git branch: 'main', url: 'https://github.com/240011814/DJava.git'
+                // To run Maven on a Windows agent, use
+                // bat "mvn -Dmaven.test.failure.ignore=true clean package"
+            }
+        }
+
+         stage('Build') {
+            steps {
+                // Get some code from a GitHub repository
+
+                // Run Maven on a Unix agent.
+                sh "cd Djava && mvn -Dmaven.test.failure.ignore=true clean package"
+
+                // To run Maven on a Windows agent, use
+                // bat "mvn -Dmaven.test.failure.ignore=true clean package"
+            }
+        }
+
+         stage('构建Docker镜像') {
+            steps {
+                sh 'cd Djava && chmod a+x *sh && ./build.sh '
+            }
+        }
+
+        stage('推送Docker镜像') {
+            steps {
+                sh 'docker login -u admin -p xxxxx  106.52.158.70:9000'
+                sh 'cd Djava && ./push.sh'
+            }
+        }
+        stage('启动程序') {
+           steps {
+                script {
+                    // Stop container if it's running
+                    if (sh(script: "docker ps -q -f name=djava", returnStdout: true).trim()) {
+                        sh 'docker stop djava'
+                    }
+                    // Remove container if it exists
+                    if (sh(script: "docker ps -a -q -f name=djava", returnStdout: true).trim()) {
+                        sh 'docker rm -f djava'
+                    }
+                    // Run the new container
+                    sh 'docker run --restart=always -d --name djava -p 9100:8080 106.52.158.70:9000/project/djava:latest'
+                }
+}
+
+        }
+    }
+}
