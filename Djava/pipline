@@ -10,7 +10,7 @@ pipeline {
       stage('拉取代码') {
           steps {
         // Get some code from a GitHub repository
-              git branch: 'main', url: 'https: //github.com/240011814/DJava.git'
+              git branch: 'main', url: 'https://github.com/240011814/DJava.git'
         // To run Maven on a Windows agent, use
         // bat "mvn -Dmaven.test.failure.ignore=true clean package"
       }
@@ -34,7 +34,7 @@ pipeline {
 
       stage('推送Docker镜像') {
           steps {
-              sh 'docker login -u admin -p xxxxx  106.52.158.70: 9000'
+              sh 'docker login -u admin -p xxxxx  106.52.158.70:9000'
               sh 'cd Djava && ./push.sh'
       }
     }
@@ -51,7 +51,7 @@ pipeline {
           }
                   sh 'docker rmi $(docker images -f "dangling=true" -q)'
                   // Run the new container
-                  sh 'docker run --restart=always -d --name djava -p 9100: 8080 106.52.158.70: 9000/project/djava:latest'
+                  sh 'docker run --restart=always -d --name djava -p 9100:8080 106.52.158.70:9000/project/djava:latest'
         }
       }
     }
