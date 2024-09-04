@@ -51,6 +51,7 @@ pipeline {
                     if (sh(script: "docker ps -a -q -f name=djava", returnStdout: true).trim()) {
                         sh 'docker rm -f djava'
                     }
+                    sh 'docker rmi $(docker images -f "dangling=true" -q)'
                     // Run the new container
                     sh 'docker run --restart=always -d --name djava -p 9100:8080 106.52.158.70:9000/project/djava:latest'
                 }
