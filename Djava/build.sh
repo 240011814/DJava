@@ -5,4 +5,4 @@ git_c=$(git rev-parse --short HEAD)
 app_name='demo'
 image_name="djava:latest"
 echo  ${image_name}
-docker build -t ${image_name}
+docker build -t ${image_name} -f ./Dockerfile
