@@ -24,6 +24,6 @@ public class HealthCheckController {
 
     @GetMapping(value = "ping")
     public Map check(){
-        return  Map.of("version", Optional.ofNullable(env.getProperty("codeVersion")).orElse(""));
+        return  Map.of("version", Optional.ofNullable(  Optional.ofNullable(System.getProperty("GIT_COMMIT")).orElse("")));
     }
 }
