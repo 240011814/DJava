@@ -9,4 +9,4 @@ EXPOSE 8080
 
 HEALTHCHECK --interval=5s --timeout=3s --retries=3 CMD curl --fail http://localhost:8080/ping || exit 1
 
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-Xms54m", "-Xmx128m","-jar", "/app/app.jar"]
