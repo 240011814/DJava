@@ -11,6 +11,8 @@ prometheus
     <artifactId>spring-boot-starter-actuator</artifactId>
 </dependency>
 
+docker run -d  --name=prometheus  -v /home/prometheus.yml:/etc/prometheus/prometheus.yml   -p 9090:9090 prom/prometheus
+
 prometheus.yml 新增
 - job_name: 'Djava'
 
