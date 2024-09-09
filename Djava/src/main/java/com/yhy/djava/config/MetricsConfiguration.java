@@ -17,7 +17,7 @@ import java.net.UnknownHostException;
 @Configuration
 public class MetricsConfiguration {
 
-    @Value("${application.name}")
+    @Value("${spring.application.name}")
     private String applicationName;
 
     @Bean
