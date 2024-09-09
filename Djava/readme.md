@@ -14,7 +14,6 @@ prometheus
 prometheus.yml 新增
 - job_name: 'Djava'
 
-  # Override the global default and scrape targets from this job every 5 seconds.
   scrape_interval: 5s
 
   static_configs:
