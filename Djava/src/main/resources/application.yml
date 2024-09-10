@@ -1,6 +1,13 @@
 spring:
   application:
     name: Djva
+  datasource:
+    username: ${MYSQL_OSS_USER:root}
+    password: ${MYSQL_OSS_PWD:123456}
+    url: jdbc:mysql://106.52.158.70:3306/demo?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+  liquibase:
+    change-log: classpath:/db/changelog-master.xml
+
 management:
   endpoints:
     web:
