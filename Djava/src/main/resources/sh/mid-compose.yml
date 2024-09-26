@@ -1,0 +1,120 @@
+version: "3"
+services:
+  nacos:
+    image: nacos/nacos-server:v2.1.1
+    container_name: nacos
+    restart: always
+    env_file:
+     - env/mid.env
+    networks:
+      - wiseman_net  
+    volumes:
+      - /data/deploy/data/nacos/logs/:/home/nacos/logs
+      - /data/deploy/data/nacos/plugins/:/home/nacos/plugins
+      - /data/deploy/data/nacos/data:/home/nacos/data
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+      - "9555:9555"
+        #等待 mysql 启动后启动
+    depends_on:
+      - mysql
+  redis:
+    image: redis:alpine3.16
+    restart: always
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - /home/deploy/configuration/env/redis.conf:/usr/local/etc/redis/redis.conf
+      - /data/deploy/data/redis/data:/data
+      - /data/deploy/data/redis/logs:/logs
+    networks: 
+      - wiseman_net
+    command: redis-server /usr/local/etc/redis/redis.conf
+  mysql:
+    image: mysql:8.0.30
+    restart: always
+    container_name: mysql
+    env_file:
+      - env/mid.env
+    ports:
+       - "3306:3306"
+    volumes:
+       - /data/deploy/data/mysql/db:/var/lib/mysql
+       - /home/deploy/configuration/env/mysql_custom.cnf:/etc/mysql/conf.d/custom.cnf
+    networks:
+      - wiseman_net
+    command: ['--lower_case_table_names=1','--default-authentication-plugin=mysql_native_password']
+  minio:
+    image: minio/minio:RELEASE.2022-08-22T23-53-06Z.hotfix.5fa3967bb
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    restart: always
+    command: server /data --console-address ":9001"
+    env_file:
+     - env/mid.env
+    logging:
+      options:
+        max-size: "50M" # 最大文件上传限制
+        max-file: "10"
+      driver: json-file
+    volumes:
+      - /data/deploy/data/minio/data:/data # 映射文件路径    
+  rmqnamesrv:
+    image: rocketmqinc/rocketmq
+    container_name: rmqnamesrv
+    restart: always
+    ports:
+      - 9876:9876
+    volumes:
+      - /data/deploy/data/rocketmq/namesrv/logs:/root/logs
+    command: sh mqnamesrv
+    env_file:
+      - env/mid.env    
+    networks:
+      wiseman_net:
+        aliases:
+          - rmqnamesrv     
+  rmqbroker:
+    image: rocketmqinc/rocketmq
+    container_name: rmqbroker
+    restart: always
+    depends_on:
+      - rmqnamesrv
+    ports:
+      - 10909:10909
+      - 10911:10911
+    volumes:
+      - /data/deploy/data/rocketmq/broker/logs:/root/logs
+      - /data/deploy/data/rocketmq/broker/store:/root/store
+      - /home/deploy/configuration/env/broker.conf:/opt/rocketmq-4.4.0/conf/broker.conf
+    command: sh mqbroker  -c /opt/rocketmq-4.4.0/conf/broker.conf
+    env_file:
+      - env/mid.env
+    networks:
+      wiseman_net:
+        aliases:
+          - rmqbroker          
+  rmqconsole:
+    image: styletang/rocketmq-console-ng
+    container_name: rocketmq-console
+    restart: always
+    ports:
+      - 9333:8080
+    depends_on:
+      - rmqnamesrv
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /data/deploy/data/rocketmq/console/logs:/root/logs
+    env_file:
+      - env/mid.env
+    networks:
+      wiseman_net:
+        aliases:
+          - rmqconsole
+networks:
+  wiseman_net:
+    driver: bridge

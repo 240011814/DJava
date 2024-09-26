@@ -1,0 +1,57 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('拉取代码') {
+            steps {
+                git branch: 'feature/20240923/optimize-the-charging-process', credentialsId: 'gitlab_root', url: 'http://192.168.0.224/backend/thor-omc.git'
+            }
+        }
+        
+        stage('编译代码') {
+            steps {
+                sh '/home/config/jenkins_local/apache-maven-3.9.6/bin/mvn clean compile install -s=/home/config/jenkins_local/apache-maven-3.9.6/conf/settings.xml -DskipTest=true -T 8C'
+            }
+        }
+        
+        stage('构建Docker镜像') {
+            steps {
+                sh 'cd build && chmod a+x *sh && ./isolate-build-docker-images.sh ocpp201'
+            }
+        }
+        
+        stage('推送Docker镜像到Harbor') {
+            steps {
+                sh 'cd build && ./isolate-push-docker-images.sh ocpp201'
+            }
+        }
+
+        stage('重启Docker容器') {
+            steps {
+                script {
+                    def remote = [:]
+                    remote.name = "node-1"
+                    remote.host = "139.159.245.153"
+                    remote.allowAnyHosts = true
+                    remote.user = 'root'
+                    remote.password = 'Wm'
+                    
+                    sshCommand remote: remote, command: 'chmod +x /home/deploy/configuration/restartocpp.sh'
+                     
+                    sshCommand remote: remote, command: 'bash /home/deploy/configuration/restartocpp.sh  wiseman-omc-ocpp201 10800'
+                }
+            }
+        }
+        
+    }
+    
+    post('WeChat Notify') {
+        always {
+            qyWechatNotification mentionedId: '', 
+            mentionedMobile: '', 
+            moreInfo: 'Git地址: ${GIT_URL} Git分支: ${GIT_BRANCH} thor-ocpp201 构建完成', 
+            webhookUrl: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=9a60fb66-f0fb-4fed-b18f-e9c7997681c1'    
+                     
+        }
+    }
+}
