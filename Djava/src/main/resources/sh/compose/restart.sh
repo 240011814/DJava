@@ -15,59 +15,59 @@ COMPOSE_FILE=$3
 case $SERVICE_NAME in
     gateway)
         HOST_PORT=9999
-        COMPOSE_FILE=admin-compose.yml
+        COMPOSE_FILE=/home/deploy/configuration/admin-compose.yml
         ;;
     auth)
         HOST_PORT=3000
-        COMPOSE_FILE=admin-compose.yml
+        COMPOSE_FILE=/home/deploy/configuration/admin-compose.yml
         ;;
     upms)
         HOST_PORT=4000
-        COMPOSE_FILE=admin-compose.yml
+        COMPOSE_FILE=/home/deploy/configuration/admin-compose.yml
         ;;
     cm)
         HOST_PORT=10100
-        COMPOSE_FILE=omc-compose.yml
+        COMPOSE_FILE=/home/deploy/configuration/omc-compose.yml
         ;;
     fm)
         HOST_PORT=10200
-        COMPOSE_FILE=omc-compose.yml
+        COMPOSE_FILE=/home/deploy/configuration/omc-compose.yml
         ;;
     mt)
         HOST_PORT=10300
-        COMPOSE_FILE=omc-compose.yml
+        COMPOSE_FILE=/home/deploy/configuration/omc-compose.yml
         ;;
     st)
         HOST_PORT=10400
-        COMPOSE_FILE=omc-compose.yml
+        COMPOSE_FILE=/home/deploy/configuration/omc-compose.yml
         ;;
     ws)
         HOST_PORT=10500
-        COMPOSE_FILE=omc-compose.yml
+        COMPOSE_FILE=/home/deploy/configuration/omc-compose.yml
         ;;
     ta)
         HOST_PORT=10600
-        COMPOSE_FILE=omc-compose.yml
+        COMPOSE_FILE=/home/deploy/configuration/omc-compose.yml
         ;;
     ocpp201)
         HOST_PORT=10800
-        COMPOSE_FILE=omc-compose.yml
+        COMPOSE_FILE=/home/deploy/configuration/omc-compose.yml
         ;;
     admin)
         HOST_PORT=20000
-        COMPOSE_FILE=oss-compose.yml
+        COMPOSE_FILE=/home/deploy/configuration/oss-compose.yml
         ;;
     thirdparty)
         HOST_PORT=20200
-        COMPOSE_FILE=oss-compose.yml
+        COMPOSE_FILE=/home/deploy/configuration/oss-compose.yml
         ;;
     adapter)
         HOST_PORT=20100
-        COMPOSE_FILE=oss-compose.yml
+        COMPOSE_FILE=/home/deploy/configuration/oss-compose.yml
         ;;
     portal)
         HOST_PORT=30910
-        COMPOSE_FILE=oss-compose.yml
+        COMPOSE_FILE=/home/deploy/configuration/oss-compose.yml
         ;;
     *)
         echo "Log path for service '$SERVICE_NAME' not found."
@@ -86,12 +86,29 @@ else
 fi
 
 # 检查是否有指定的容器存在（包括停止的容器）
-if [ "$(docker ps -a -q -f name=$SERVICE_NAME)" ]; then
+CONTAINER_ID=$(docker ps -a -q -f name="$SERVICE_NAME")
+
+if [ -n "$CONTAINER_ID" ]; then
     echo "Removing container $SERVICE_NAME..."
-    docker rm -f $SERVICE_NAME
+
+    # 获取容器对应的镜像
+    IMAGE_NAME=$(docker inspect --format="{{.Config.Image}}" "$CONTAINER_ID")
+
+    # 删除容器
+    docker rm -f "$CONTAINER_ID"
+
+    # 删除镜像
+    if [ -n "$IMAGE_NAME" ]; then
+        echo "Removing image $IMAGE_NAME..."
+        docker rmi "$IMAGE_NAME"
+    else
+        echo "No image found for the container."
+    fi
 else
     echo "No container named $SERVICE_NAME to remove."
 fi
+
+
 
 # 清理无用的镜像
 docker rmi $(docker images -f "dangling=true" -q)
@@ -99,7 +116,7 @@ docker rmi $(docker images -f "dangling=true" -q)
 
 # 重新运行容器，使用传入的端口
 echo "Running new container $SERVICE_NAME on port $HOST_PORT..."
-docker-compose -f $COMPOSE_FILE start  $SERVICE_NAME
+docker-compose -f $COMPOSE_FILE up -d --no-deps --build $SERVICE_NAME
 
 # 检查容器是否成功启动
 TIMEOUT=120  # 设置超时时间（秒）
@@ -123,5 +140,5 @@ done
 
 # 如果超过超时时间
 echo "服务未能在端口 $HOST_PORT 上成功启动（超时 $TIMEOUT 秒）。"
-docker logs $SERVICE_NAME
+docker logs $SERVICE_NAME-service
 exit 1
