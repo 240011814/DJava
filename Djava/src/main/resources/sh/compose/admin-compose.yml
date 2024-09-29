@@ -2,11 +2,10 @@ version: "3"
 services:
   gateway:
     image: ${PULL_REP}/wiseman-gateway
-    container_name: gateway
     restart: always
     depends_on:
       - upms
-      - auth 
+      - auth
     # 端口映射
     ports:
       - 9999:9999
@@ -16,11 +15,10 @@ services:
       - env/wsm.env
     volumes:
       - /data/deploy/data/thor/logs:/thor-gateway/logs
-    networks: 
-      - wiseman_net 
+    networks:
+      - wiseman_net
   auth:
     image: ${PULL_REP}/wiseman-auth
-    container_name: auth
     restart: always
     depends_on:
       - upms
@@ -33,11 +31,10 @@ services:
       - env/wsm.env
     volumes:
       - /data/deploy/data/thor/logs:/thor-auth/logs
-    networks: 
+    networks:
       - wiseman_net
   upms:
     image: ${PULL_REP}/wiseman-upms
-    container_name: upms
     restart: always
     # 端口映射
     ports:
@@ -47,11 +44,11 @@ services:
     environment:
       "log.file.path": /thor-upms/logs/thor-upms.log
     env_file:
-    - env/wsm.env
+      - env/wsm.env
     volumes:
       - /data/deploy/data/thor/logs:/thor-upms/logs
-    networks: 
+    networks:
       - wiseman_net
-networks: 
-    wiseman_net: 
-      driver: bridge
+networks:
+  wiseman_net:
+    driver: bridge

@@ -1,5 +1,5 @@
 #!/bin/bash
-
+. /etc/profile
 # 检查是否传入了容器名和端口号参数
 if [ -z "$1" ]; then
     echo "Error: Container name not provided."
@@ -77,37 +77,23 @@ esac
 
 
 
-# 检查是否有正在运行的指定容器
-if [ "$(docker ps -q -f name=$SERVICE_NAME)" ]; then
-    echo "Stopping running container $SERVICE_NAME..."
-    docker-compose -f $COMPOSE_FILE  stop $SERVICE_NAME
+# 获取所有正在运行的指定服务容器ID
+CONTAINER_IDS=$(docker-compose -f $COMPOSE_FILE ps -q $SERVICE_NAME)
+
+if [ -n "$CONTAINER_IDS" ]; then
+    echo "Stopping running containers for service $SERVICE_NAME..."
+    docker-compose -f $COMPOSE_FILE stop $SERVICE_NAME
 else
-    echo "No running container named $SERVICE_NAME."
+    echo "No running containers for service $SERVICE_NAME."
 fi
 
-# 检查是否有指定的容器存在（包括停止的容器）
-CONTAINER_ID=$(docker ps -a -q -f name="$SERVICE_NAME")
-
-if [ -n "$CONTAINER_ID" ]; then
-    echo "Removing container $SERVICE_NAME..."
-
-    # 获取容器对应的镜像
-    IMAGE_NAME=$(docker inspect --format="{{.Config.Image}}" "$CONTAINER_ID")
-
-    # 删除容器
-    docker rm -f "$CONTAINER_ID"
-
-    # 删除镜像
-    if [ -n "$IMAGE_NAME" ]; then
-        echo "Removing image $IMAGE_NAME..."
-        docker rmi "$IMAGE_NAME"
-    else
-        echo "No image found for the container."
-    fi
+# 检查并删除所有容器
+if [ -n "$CONTAINER_IDS" ]; then
+    echo "Removing containers for service $SERVICE_NAME..."
+    docker-compose -f $COMPOSE_FILE rm -f $SERVICE_NAME
 else
-    echo "No container named $SERVICE_NAME to remove."
+    echo "No containers to remove for service $SERVICE_NAME."
 fi
-
 
 
 # 清理无用的镜像
@@ -116,7 +102,7 @@ docker rmi $(docker images -f "dangling=true" -q)
 
 # 重新运行容器，使用传入的端口
 echo "Running new container $SERVICE_NAME on port $HOST_PORT..."
-docker-compose -f $COMPOSE_FILE up -d --no-deps --build $SERVICE_NAME
+docker-compose -f $COMPOSE_FILE up -d --force-recreate --no-deps --build $SERVICE_NAME
 
 # 检查容器是否成功启动
 TIMEOUT=120  # 设置超时时间（秒）
@@ -140,5 +126,5 @@ done
 
 # 如果超过超时时间
 echo "服务未能在端口 $HOST_PORT 上成功启动（超时 $TIMEOUT 秒）。"
-docker logs $SERVICE_NAME-service
+docker logs configuration_${SERVICE_NAME}_1
 exit 1
