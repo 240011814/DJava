@@ -12,7 +12,7 @@ prometheus
 </dependency>
 
 docker run -d   --name=prometheus  -v /home/prometheus.yml:/etc/prometheus/prometheus.yml   -p 9090:9090 prom/prometheus
-docker run -d --name=grafana -p 9800:3000 grafana/grafana-enterprise
+docker run -d   --name=grafana -p 9800:3000  -v /path/to/grafana/data:/var/lib/grafana grafana/grafana-enterprise
 
 
 prometheus.yml 新增
