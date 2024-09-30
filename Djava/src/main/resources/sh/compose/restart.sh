@@ -102,6 +102,7 @@ docker rmi $(docker images -f "dangling=true" -q)
 
 # 重新运行容器，使用传入的端口
 echo "Running new container $SERVICE_NAME on port $HOST_PORT..."
+docker-compose -f $COMPOSE_FILE pull $SERVICE_NAME
 docker-compose -f $COMPOSE_FILE up -d --force-recreate --no-deps --build $SERVICE_NAME
 
 # 检查容器是否成功启动
