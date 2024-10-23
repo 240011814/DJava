@@ -1,0 +1,100 @@
+# my global config
+global:
+  scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: "prometheus"
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: "admin"
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ["192.168.0.225:20000"]
+
+  - job_name: "thirdparty"
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ["192.168.0.225:20200"]
+
+  - job_name: "portal"
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ["192.168.0.225:30910"]
+
+  - job_name: "adapter"
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ["192.168.0.225:20100","192.168.0.225:20101","192.168.0.225:20102"] 
+
+  - job_name: "gateway"
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ["192.168.0.225:9999"] 
+
+  - job_name: "auth"
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ["192.168.0.225:3000"] 
+
+  - job_name: "upms"
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ["192.168.0.225:4000"] 
+
+  - job_name: "cm"
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ["192.168.0.225:10100"] 
+
+  - job_name: "fm"
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ["192.168.0.225:10200"] 
+
+  - job_name: "mt"
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ["192.168.0.225:10300"]
+
+  - job_name: "st"
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ["192.168.0.225:10400"] 
+
+  - job_name: "ws"
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ["192.168.0.225:10500"] 
+
+  - job_name: "ta"
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ["192.168.0.225:10600"]  
+
+  - job_name: "ocpp201"
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ["192.168.0.225:10800"]                                                                          
+    
