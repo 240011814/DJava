@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 
 import java.net.InetAddress;
@@ -28,7 +29,7 @@ public class MetricsConfiguration {
 
     public MetricsConfiguration(@Value("${spring.application.name}") String applicationName,
                                 Environment env ,
-                                MeterRegistry meterRegistry) {
+                               @Lazy MeterRegistry meterRegistry) {
         this.applicationName = applicationName;
         this.env = env;
         this.meterRegistry = meterRegistry;
